@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --ink: #1a1d23;
+            --ink-light: #6b7280;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --border: #e5e7eb;
+            --border-hover: #d1d5db;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background: rgba(255,255,255,0.82);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+        }
+        .navbar-inner {
+            max-width: 1120px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 56px;
+        }
+        .navbar-brand {
+            display: flex; align-items: center; gap: 10px;
+            font-weight: 800; font-size: 17px; letter-spacing: -0.3px;
+        }
+        .brand-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            display: grid; place-items: center; color: #fff; font-size: 15px;
+        }
+        .navbar-badge {
+            font-size: 11px; font-weight: 600;
+            padding: 3px 8px; border-radius: 20px;
+            background: var(--success-bg); color: var(--success);
+        }
+
+        /* ── Main ── */
+        .main { max-width: 1120px; margin: 0 auto; padding: 32px; }
+
+        /* ── Hero stats ── */
+        .stats-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-light); }
+        .stat-value { font-size: 28px; font-weight: 800; margin-top: 4px; letter-spacing: -1px; }
+        .stat-value.accent { color: var(--accent); }
+
+        /* ── Card ── */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+        }
+        .card-header h2 { font-size: 16px; font-weight: 700; }
+        .card-header .subtitle { font-size: 13px; color: var(--ink-light); }
+
+        /* ── Table ── */
+        .product-table { width: 100%; border-collapse: collapse; }
+        .product-table th {
+            text-align: left; padding: 12px 24px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .6px; color: var(--ink-light);
+            background: #f9fafb; border-bottom: 1px solid var(--border);
+        }
+        .product-table td {
+            padding: 16px 24px; border-bottom: 1px solid var(--border);
+            font-size: 14px; vertical-align: middle;
+        }
+        .product-table tbody tr {
+            transition: background .15s;
+        }
+        .product-table tbody tr:hover { background: #f9fafb; }
+        .product-table tbody tr:last-child td { border-bottom: none; }
+
+        .product-id {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 8px;
+            background: #f3f4f6; font-size: 13px; font-weight: 700; color: var(--ink-light);
+        }
+        .product-name { font-weight: 600; }
+        .product-desc { color: var(--ink-light); font-size: 13px; margin-top: 2px; }
+        .product-price {
+            font-weight: 700; font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        /* ── Qty Input ── */
+        .qty-wrap {
+            display: inline-flex; align-items: center;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            overflow: hidden; transition: border-color .15s;
+        }
+        .qty-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+        .qty-btn {
+            width: 32px; height: 36px; border: none; background: #f9fafb;
+            font-size: 16px; font-weight: 600; color: var(--ink-light);
+            cursor: pointer; display: grid; place-items: center;
+            transition: background .12s, color .12s;
+        }
+        .qty-btn:hover { background: #e5e7eb; color: var(--ink); }
+        .qty-input {
+            width: 48px; height: 36px; border: none; text-align: center;
+            font-size: 14px; font-weight: 600; color: var(--ink);
+            outline: none; background: transparent;
+            -moz-appearance: textfield;
+        }
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* ── Order Button ── */
+        .order-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px; border: none; border-radius: var(--radius-sm);
+            background: var(--accent); color: #fff;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: all .18s ease;
+            box-shadow: 0 1px 3px rgba(79,70,229,.3);
+        }
+        .order-btn:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(79,70,229,.35);
+            transform: translateY(-1px);
+        }
+        .order-btn:active { transform: translateY(0); }
+        .order-btn:disabled {
+            opacity: .55; cursor: not-allowed; transform: none;
+            box-shadow: none;
+        }
+        .order-btn svg { width: 14px; height: 14px; }
+
+        /* ── Toast ── */
+        .toast-container {
+            position: fixed; top: 72px; right: 24px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 20px; border-radius: var(--radius);
+            background: var(--surface); border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg); min-width: 320px; max-width: 420px;
+            animation: slideIn .3s cubic-bezier(.22,1,.36,1);
+            font-size: 13px; line-height: 1.5;
+        }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error   { border-left: 4px solid var(--danger); }
+        .toast-icon {
+            width: 20px; height: 20px; border-radius: 50%;
+            display: grid; place-items: center; flex-shrink: 0; margin-top: 1px;
+        }
+        .toast.success .toast-icon { background: var(--success-bg); color: var(--success); }
+        .toast.error   .toast-icon { background: var(--danger-bg);  color: var(--danger); }
+        .toast-body { flex: 1; }
+        .toast-title { font-weight: 700; margin-bottom: 2px; }
+        .toast.success .toast-title { color: var(--success); }
+        .toast.error   .toast-title { color: var(--danger); }
+        .toast-msg { color: var(--ink-light); }
+        .toast-close {
+            background: none; border: none; cursor: pointer;
+            color: var(--ink-light); font-size: 16px; padding: 0;
+            line-height: 1; margin-top: 1px;
+        }
+        .toast-close:hover { color: var(--ink); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(30px); }
+        }
+
+        /* ── Spinner ── */
+        .spinner {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: #fff; border-radius: 50%;
+            animation: spin .5s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Empty State ── */
+        .empty-state {
+            padding: 64px 24px; text-align: center;
+        }
+        .empty-icon {
+            width: 64px; height: 64px; margin: 0 auto 16px;
+            background: #f3f4f6; border-radius: 50%;
+            display: grid; place-items: center; font-size: 28px;
+        }
+        .empty-state h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .empty-state p  { font-size: 13px; color: var(--ink-light); }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .main { padding: 16px; }
+            .navbar { padding: 0 16px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .product-table th:nth-child(3),
+            .product-table td:nth-child(3) { display: none; }
+            .card-header { padding: 16px; }
+            .product-table th, .product-table td { padding: 12px 16px; }
+            .order-btn span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <div class="navbar-brand">
+            <div class="brand-icon">O</div>
+            OrderMgt
+        </div>
+        <span class="navbar-badge">Running</span>
+    </div>
+</nav>
+
+<div class="main">
+
+    <!-- Stats -->
+    <div class="stats-row" th:if="${!#lists.isEmpty(products)}">
+        <div class="stat-card">
+            <div class="stat-label">Total Products</div>
+            <div class="stat-value accent" th:text="${#lists.size(products)}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">API Endpoint</div>
+            <div class="stat-value" style="font-size:16px;letter-spacing:0;margin-top:8px;font-family:monospace;">POST /api/orders</div>
+        </div>
+    </div>
+
+    <!-- Product Card -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2>상품 목록</h2>
+                <div class="subtitle">수량을 설정하고 주문하기를 클릭하세요</div>
+            </div>
+        </div>
+
+        <table class="product-table" th:if="${!#lists.isEmpty(products)}">
+            <thead>
+            <tr>
+                <th style="width:64px">ID</th>
+                <th>상품 정보</th>
+                <th>설명</th>
+                <th style="text-align:right">가격</th>
+                <th style="text-align:center">수량</th>
+                <th style="text-align:right;width:130px">액션</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td><span class="product-id" th:text="${product.id}">1</span></td>
+                <td>
+                    <div class="product-name" th:text="${product.name}">상품명</div>
+                </td>
+                <td>
+                    <div class="product-desc" th:text="${product.description}">설명</div>
+                </td>
+                <td style="text-align:right">
+                    <span class="product-price"
+                          th:text="${#numbers.formatDecimal(product.price, 1, 'COMMA', 0, 'POINT')} + '원'">0원</span>
+                </td>
+                <td style="text-align:center">
+                    <div class="qty-wrap">
+                        <button type="button" class="qty-btn" onclick="changeQty(this,-1)">&minus;</button>
+                        <input class="qty-input" type="number" min="1" value="1"
+                               th:attr="id='qty-' + ${product.id}">
+                        <button type="button" class="qty-btn" onclick="changeQty(this,1)">+</button>
+                    </div>
+                </td>
+                <td style="text-align:right">
+                    <button class="order-btn"
+                            th:attr="data-product-id=${product.id}"
+                            onclick="placeOrder(this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        <span>주문하기</span>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+            <div class="empty-icon">&#128230;</div>
+            <h3>등록된 상품이 없습니다</h3>
+            <p>POST /api/products 를 호출하여 상품을 먼저 등록해 주세요.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    /* ── Qty +/- buttons ── */
+    function changeQty(btn, delta) {
+        const input = btn.parentElement.querySelector('.qty-input');
+        const next = Math.max(1, Number(input.value) + delta);
+        input.value = next;
+    }
+
+    /* ── Toast notification ── */
+    function showToast(type, title, message) {
+        const container = document.getElementById('toastContainer');
+        const icon = type === 'success'
+            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-body">
+                <div class="toast-title">${title}</div>
+                <div class="toast-msg">${message}</div>
+            </div>
+            <button class="toast-close" onclick="dismissToast(this)">&times;</button>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => dismissToast(toast.querySelector('.toast-close')), 5000);
+    }
+
+    function dismissToast(el) {
+        const toast = el.closest('.toast');
+        if (!toast) return;
+        toast.style.animation = 'slideOut .25s ease forwards';
+        toast.addEventListener('animationend', () => toast.remove());
+    }
+
+    /* ── Place order via Fetch API ── */
+    async function placeOrder(button) {
+        const productId = Number(button.dataset.productId);
+        const qtyInput = document.getElementById(`qty-${productId}`);
+        const quantity = Number(qtyInput.value);
+
+        if (!quantity || quantity < 1) {
+            showToast('error', '입력 오류', '수량은 1 이상이어야 합니다.');
+            return;
+        }
+
+        /* Disable button & show spinner */
+        const originalHTML = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner"></span>';
+
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: [{ productId, quantity }]
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                const no = result.data?.orderNumber || '';
+                showToast('success', '주문 완료', `주문번호 ${no}`);
+            } else {
+                showToast('error', '주문 실패', result.message || '요청 처리 중 오류가 발생했습니다.');
+            }
+        } catch (err) {
+            showToast('error', '네트워크 오류', '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+        } finally {
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 /workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/controller/OrderController.java
 /workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/controller/ProductController.java
 /workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/controller/StockController.java
+/workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/controller/ViewController.java
 /workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/domain/Order.java
 /workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/domain/OrderItem.java
 /workspaces/OrderMgtSystem/src/main/java/com/example/ordermgtsystem/domain/OrderStatus.java
